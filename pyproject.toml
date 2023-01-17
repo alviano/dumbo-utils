@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "dumbo-utils"
+version = "0.1.0"
+description = "Different utilities to be reused in other projects"
+authors = ["Mario Alviano <mario.alviano@gmail.com>"]
+readme = "README.md"
+packages = [{include = "dumbo_utils"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+valid8 = "^5.1.2"
+typeguard = "^2.13.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
