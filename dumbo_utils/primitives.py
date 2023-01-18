@@ -1,8 +1,8 @@
 import dataclasses
-from dataclasses import InitVar
 from typing import Optional, Any
 
 import typeguard
+
 from dumbo_utils import validation
 from dumbo_utils.validation import validate, validate_does_not_have_attributes
 
@@ -29,7 +29,6 @@ def bounded_integer(min_value: int, max_value: int):
             'max_value',
             'parse',
             'of',
-            '__post_init__',
             'toJSON',
         ], and_annotations=True)
 
@@ -44,12 +43,15 @@ def bounded_integer(min_value: int, max_value: int):
         setattr(cls, 'parse', staticmethod(lambda s: cls(int(s))))
         setattr(cls, 'of', staticmethod(lambda s: cls(int(s))))
 
-        if not hasattr(cls, '_validate'):
-            setattr(cls, '_validate', lambda self: None)
+        if hasattr(cls, '__post_init__'):
+            fun = getattr(cls, '__post_init__')
 
-        def post_init(self):
-            validate('value', self.value, min_value=self.min_value(), max_value=self.max_value())
-            self._validate()
+            def post_init(self):
+                validate('value', self.value, min_value=self.min_value(), max_value=self.max_value())
+                fun(self)
+        else:
+            def post_init(self):
+                validate('value', self.value, min_value=self.min_value(), max_value=self.max_value())
 
         setattr(cls, '__post_init__', post_init)
         setattr(cls, 'toJSON', lambda self: self.value)
@@ -63,7 +65,7 @@ def bounded_integer(min_value: int, max_value: int):
 
 
 @typeguard.typechecked
-def bounded_string(min_length: int, max_length: int, pattern: str = r'.*', private_init: Optional[bool] = False):
+def bounded_string(min_length: int, max_length: int, pattern: str = r'.*'):
     validate('min_length', min_length, min_value=0, max_value=max_length)
     validate('max_length', max_length, min_value=min_length)
 
@@ -75,7 +77,7 @@ def bounded_string(min_length: int, max_length: int, pattern: str = r'.*', priva
             'parse',
             'of',
             'toJSON',
-            '__post_init__',
+            '__len__',
         ], and_annotations=True)
 
         cls.__annotations__ = {'value': str}
@@ -89,30 +91,20 @@ def bounded_string(min_length: int, max_length: int, pattern: str = r'.*', priva
         setattr(cls, 'parse', staticmethod(lambda s: cls(s)))
         setattr(cls, 'of', staticmethod(lambda s: cls(s)))
         setattr(cls, 'toJSON', lambda self: self.value)
+        setattr(cls, '__len__', lambda self: len(self.value))
+        setattr(cls, 'length', property(lambda self: len(self.value)))
 
-        if pattern == r'.*':
-            def __validate(self):
-                validate('value', self.value, min_len=self.min_length(), max_len=self.max_length())
-        else:
-            def __validate(self):
+        if hasattr(cls, '__post_init__'):
+            fun = getattr(cls, '__post_init__')
+
+            def post_init(self):
                 validate('value', self.value, min_len=self.min_length(), max_len=self.max_length(),
-                         custom=validation.pattern(self.pattern()))
-
-        if not hasattr(cls, '_validate'):
-            setattr(cls, '_validate', lambda self: None)
-
-        if private_init:
-            validate('cls', hasattr(cls, '_validate_init_key'), equals=True)
-            cls.__annotations__['init_key'] = InitVar
-
-            def post_init(self, init_key):
-                self._validate_init_key(init_key)
-                __validate(self)
-                self._validate()
+                         custom=validation.pattern(pattern))
+                fun(self)
         else:
             def post_init(self):
-                __validate(self)
-                self._validate()
+                validate('value', self.value, min_len=self.min_length(), max_len=self.max_length(),
+                         custom=validation.pattern(pattern))
         setattr(cls, '__post_init__', post_init)
 
         return dataclasses.dataclass(frozen=True, order=True)(cls)

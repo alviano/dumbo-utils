@@ -10,6 +10,9 @@ ValidationError = valid8.ValidationError
 
 @typeguard.typechecked
 def pattern(regex: str) -> Callable[[str], bool]:
+    if regex == '.*':
+        return lambda value: True
+
     r = re.compile(regex)
 
     def res(value):
