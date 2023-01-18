@@ -1,6 +1,6 @@
 import dataclasses
 from dataclasses import InitVar
-from typing import Optional
+from typing import Optional, Any
 
 import typeguard
 from dumbo_utils import validation
@@ -118,3 +118,13 @@ def bounded_string(min_length: int, max_length: int, pattern: str = r'.*', priva
         return dataclasses.dataclass(frozen=True, order=True)(cls)
 
     return decorator
+
+
+@dataclasses.dataclass(frozen=True)
+class PrivateKey:
+    default_name: str = dataclasses.field(default="key")
+    default_help_msg: str = dataclasses.field(default="Invalid call to private method")
+
+    def validate(self, key: Any, name: Optional[str] = None, help_msg: Optional[str] = None):
+        validate(name if name is not None else self.default_name, key, equals=self,
+                 help_msg=help_msg if help_msg is not None else self.default_help_msg)
