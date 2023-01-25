@@ -1,5 +1,7 @@
 import dataclasses
-from typing import Optional, Any
+import functools
+from dataclasses import InitVar
+from typing import Optional, Union
 
 import typeguard
 
@@ -117,6 +119,61 @@ class PrivateKey:
     default_name: str = dataclasses.field(default="key")
     default_help_msg: str = dataclasses.field(default="Invalid call to private method")
 
-    def validate(self, key: Any, name: Optional[str] = None, help_msg: Optional[str] = None):
+    def validate(self, key: "PrivateKey", name: Optional[str] = None, help_msg: Optional[str] = None):
         validate(name if name is not None else self.default_name, key, equals=self,
                  help_msg=help_msg if help_msg is not None else self.default_help_msg)
+
+
+@typeguard.typechecked
+@functools.total_ordering
+@dataclasses.dataclass(frozen=True)
+class PositiveIntegerOrUnbounded:
+    __value: Optional[int]
+
+    key: InitVar[PrivateKey]
+    __key = PrivateKey()
+
+    def __post_init__(self, key: PrivateKey):
+        self.__key.validate(key)
+
+    @staticmethod
+    def of(value: int) -> "PositiveIntegerOrUnbounded":
+        validate("value", value, min_value=1)
+        res = PositiveIntegerOrUnbounded(value, key=PositiveIntegerOrUnbounded.__key)
+        return res
+
+    @staticmethod
+    def of_unbounded() -> "PositiveIntegerOrUnbounded":
+        return PositiveIntegerOrUnbounded(None, key=PositiveIntegerOrUnbounded.__key)
+
+    @property
+    def int_value(self) -> int:
+        validate("value", self.is_int, equals=True)
+        return self.__value
+
+    @property
+    def is_int(self) -> bool:
+        return self.__value is not None
+
+    @property
+    def is_unbounded(self) -> bool:
+        return self.__value is None
+
+    def __str__(self):
+        return f"{self.__value}" if self.is_int else "unbounded"
+
+    def __lt__(self, other: "PositiveIntegerOrUnbounded") -> bool:
+        if self.is_unbounded:
+            return False
+        if other.is_unbounded:
+            return True
+        return self.__value < other.__value
+
+    def greater_than(self, value: int) -> bool:
+        return self.is_unbounded or self.__value > value
+
+    def __add__(self, other: Union[int, "PositiveIntegerOrUnbounded"]) -> "PositiveIntegerOrUnbounded":
+        if self.is_unbounded or (type(other) is PositiveIntegerOrUnbounded and other.is_unbounded):
+            return PositiveIntegerOrUnbounded.of_unbounded()
+        other_value = other.__value if type(other) is PositiveIntegerOrUnbounded else other
+        return PositiveIntegerOrUnbounded.of(self.__value + other_value)

@@ -4,7 +4,7 @@ from typing import Any, Final
 
 import pytest
 
-from dumbo_utils.primitives import PrivateKey, bounded_string, bounded_integer
+from dumbo_utils.primitives import PrivateKey, bounded_string, bounded_integer, PositiveIntegerOrUnbounded
 from dumbo_utils.validation import validate
 
 
@@ -103,3 +103,26 @@ def test_private_key():
     Foo.of()
     with pytest.raises(ValueError):
         Foo(object())
+
+
+def test_positive_integer_or_unbounded():
+    assert PositiveIntegerOrUnbounded.of(1).int_value == 1
+    assert PositiveIntegerOrUnbounded.of_unbounded().is_unbounded
+    with pytest.raises(ValueError):
+        _ = PositiveIntegerOrUnbounded.of_unbounded().int_value
+    with pytest.raises(ValueError):
+        PositiveIntegerOrUnbounded.of(0)
+
+
+def test_positive_integer_or_unbounded_order():
+    assert PositiveIntegerOrUnbounded.of(1) < PositiveIntegerOrUnbounded.of(2)
+    assert PositiveIntegerOrUnbounded.of(1) < PositiveIntegerOrUnbounded.of_unbounded()
+
+
+def test_positive_integer_or_unbounded_addition():
+    assert PositiveIntegerOrUnbounded.of(1) + PositiveIntegerOrUnbounded.of(1) == PositiveIntegerOrUnbounded.of(2)
+    assert PositiveIntegerOrUnbounded.of(1) + PositiveIntegerOrUnbounded.of_unbounded() == \
+           PositiveIntegerOrUnbounded.of_unbounded()
+    assert PositiveIntegerOrUnbounded.of(1) + 0 == PositiveIntegerOrUnbounded.of(1)
+    with pytest.raises(ValueError):
+        PositiveIntegerOrUnbounded.of(1) + (-1)

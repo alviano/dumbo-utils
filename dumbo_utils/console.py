@@ -13,4 +13,3 @@ logging.basicConfig(
     handlers=[RichHandler(console=console, markup=True, rich_tracebacks=True)],
 )
 log = logging.getLogger("rich")
-
