@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "dumbo-utils"
-version = "0.1.9"
+version = "0.2.0"
 description = "Different utilities to be reused in other projects"
 authors = ["Mario Alviano <mario.alviano@gmail.com>"]
 readme = "README.md"
 packages = [{include = "dumbo_utils"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 rich = "^13.3.1"
 typer = "^0.9.0"
 typeguard = "^4.0.0"
