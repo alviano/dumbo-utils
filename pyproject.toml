@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dumbo-utils"
-version = "0.2.0"
+version = "0.2.11"
 description = "Different utilities to be reused in other projects"
 authors = ["Mario Alviano <mario.alviano@gmail.com>"]
 readme = "README.md"
@@ -13,6 +13,7 @@ typer = "^0.9.0"
 typeguard = "^4.0.0"
 valid8 = "^5.1.2"
 distlib = "^0.3.6"
+dataclass-type-validator = "^0.1.2"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.1.0"
