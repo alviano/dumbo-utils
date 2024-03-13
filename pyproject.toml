@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dumbo-utils"
-version = "0.3.1"
+version = "0.3.2"
 description = "Different utilities to be reused in other projects"
 authors = ["Mario Alviano <mario.alviano@gmail.com>"]
 readme = "README.md"
