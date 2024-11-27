@@ -21,3 +21,9 @@ def log(level, func):
         assert isinstance(args, Iterable)
         assert isinstance(kwargs, dict)
         logging.log(level, msg, *args, **kwargs)
+
+
+def dlog(level, func):
+    if __debug__:
+        log(level, func)
+
